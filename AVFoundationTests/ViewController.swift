@@ -50,7 +50,7 @@ class ViewController: UIViewController {
                                       automaticallyLoadedAssetKeys: assetKeys)
         
         // #MARK : Apply videoCompoistion
-        // playerItem.videoComposition = videoCompoistion
+        playerItem.videoComposition = videoCompoistion
         
         // Register as an observer of the player item's status property
         playerItem.addObserver(self,
@@ -107,23 +107,20 @@ class ViewController: UIViewController {
         
         
         let realSize = resolutionSizeForLocalVideo(track: videoAssetTrack)!
-        //mutableCompositionVideoTrack.preferredTransform = videoAssetTrack.preferredTransform
-        
-        
-        
-        //let cropFilter = CIFilter(name: "CICrop")
+        // #MARK : Apply transform to fix orienation
+        mutableCompositionVideoTrack.preferredTransform = videoAssetTrack.preferredTransform
+      
+        let cropRenderSize = CGSize(width: 300, height: 200)
+        let cropFilter = CIFilter(name: "CICrop")
         let videoCompistion = AVMutableVideoComposition(asset: composition, applyingCIFiltersWithHandler: { request in
             
             let source = request.sourceImage
-            
-            
-            //cropFilter?.setValue(source, forKeyPath: "inputImage")
-            //cropFilter?.setValue(CIVector(cgRect: CGRect(x: 0, y: 0, width: 352, height: 433)), forKeyPath: "inputRectangle")
-            
+            cropFilter?.setValue(source, forKeyPath: "inputImage")
+            cropFilter?.setValue(CIVector(cgRect: CGRect(x: 0, y: 0, width: cropRenderSize.width, height: cropRenderSize.height)), forKeyPath: "inputRectangle")
             // Provide the filter output to the composition
-            request.finish(with:source, context: nil)
+            request.finish(with:(cropFilter?.outputImage)!, context: nil)
         })
-        videoCompistion.renderSize = realSize
+        videoCompistion.renderSize = cropRenderSize
         
         
         return (composition,videoCompistion)
